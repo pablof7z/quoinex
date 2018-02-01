@@ -40,7 +40,6 @@ module Quoinex
 
       status
     rescue => e
-      p e
       raise Quoinex::CancelOrderException.new(e.message)
     end
 
@@ -121,17 +120,13 @@ module Quoinex
     end
 
     def auth_headers(path)
-      p path
       sign = signature(path)
 
-      a = {
+      {
         'Content-Type' => 'application/json',
         'X-Quoine-API-Version' => 2,
         'X-Quoine-Auth' => sign,
       }
-
-      p a
-      a
     end
   end
 end
