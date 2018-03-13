@@ -10,10 +10,14 @@ module Quoinex
                 :secret,
                 :url
 
-    def initialize(key:, secret:, url: 'https://api.quoine.com/')
+    def initialize(key:, secret:, url: 'https://api.quoine.com')
       @key = key
       @secret = secret
       @url = url
+    end
+
+    def crypto_accounts
+      get('/crypto_accounts')
     end
 
     def balances
@@ -28,28 +32,25 @@ module Quoinex
       get('/orders')
     end
 
+    def products
+      get('/products')
+    end
+
     def cancel_order(id)
-      status = put("/orders/#{id}/cancel")
-      return status
-
-      if status['responseStatus'] && status['responseStatus']['errorCode']
-        error = status['responseStatus']['message']
-        error ||= status['responseStatus']
-        raise Quoinex::CancelOrderException.new(error)
-      end
-
-      status
+      put("/orders/#{id}/cancel")
     rescue => e
       raise Quoinex::CancelOrderException.new(e.message)
     end
 
     def create_order(side:, size:, price:, product_id:)
       opts = {
-        order_type: :limit,
-        product_id: product_id,
-        side: side,
-        quantity: size.to_f.to_s,
-        price: price.to_f.to_s,
+        order: {
+          order_type: :limit,
+          product_id: product_id,
+          side: side,
+          quantity: size.to_f.to_s,
+          price: price.to_f.to_s,
+        }
       }
       order = post('/orders', opts)
 
@@ -100,7 +101,7 @@ module Quoinex
     end
 
     def put(path, opts = {})
-      response = RestClient.put("#{@url}#{path}", auth_headers(path))
+      response = RestClient.put("#{@url}#{path}", nil, auth_headers(path))
 
       if !opts[:skip_json]
         JSON.parse(response.body)

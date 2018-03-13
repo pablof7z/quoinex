@@ -2,5 +2,5 @@
 # Primary module for this gem.
 module Quoinex
   # Current Quoinex version.
-  VERSION = '0.1.4'.freeze
+  VERSION = '0.2.0'.freeze
 end
