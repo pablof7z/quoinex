@@ -39,7 +39,7 @@ module Quoinex
     def cancel_order(id)
       put("/orders/#{id}/cancel")
     rescue => e
-      raise Quoinex::CancelOrderException.new(e.message)
+      handle_error(e, Quoinex::CancelOrderException)
     end
 
     def create_order(side:, size:, price:, product_id:)
@@ -56,15 +56,22 @@ module Quoinex
 
       if !order['id']
         error ||= order
-        raise Quoinex::CreateOrderException.new(error)
+        raise Quoinex::CreateOrderException, error
       end
 
       order
     rescue => e
-      raise Quoinex::CreateOrderException.new(e.message)
+      handle_error(e, Quoinex::CreateOrderException)
     end
 
     # private
+
+    def handle_error(e, exception)
+      error = (JSON.parse(e.http_body) rescue nil) if e.http_body
+      error ||= e.message
+
+      raise exception, error
+    end
 
     def signature(path)
       auth_payload = {
