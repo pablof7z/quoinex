@@ -64,6 +64,65 @@ module Quoinex
       handle_error(e, Quoinex::CreateOrderException)
     end
 
+    def trading_accounts
+      get('/trading_accounts')
+    end
+
+    def trading_account(id)
+      get("/trading_accounts/#{id}")
+    end
+
+    def update_leverage_level(leverage_level, id = nil)
+      id ||= trading_accounts[0]['id']
+      opts = {
+        trading_account: {
+          leverage_level: leverage_level
+        }
+      }
+      put("/trading_accounts/#{id}", opts)
+    rescue => e
+      handle_error(e, Quoinex::UpdateLeverageLevelException)
+    end
+
+    def get_trade(funding_currency = nil, status = nil)
+      params: []
+      params << ['funding_currency', funding_currency] if funding_currency
+      params << ['status', status] if status
+      get("/trades", { params: params })
+    end
+
+    def close_trade(id, quantity = nil)
+      opts = {}
+      opts[:closed_quantity] = quantity if quantity
+      put("/trades/#{id}/close", opts)
+    rescue => e
+      handle_error(e, Quoinex::CloseTradeException)
+    end
+
+    def close_all_trade(side = nil)
+      opts = {}
+      opts[:side] = side if side
+      put('/trades/close_all', opts)
+    rescue => e
+      handle_error(e, Quoinex::CloseAllTradeException)
+    end
+
+    def update_trade(id, stop_loss, take_profit)
+      opts = {
+        trade: {
+          stop_loss: stop_loss,
+          take_profit: take_profit
+        }
+      }
+      put("/trades/#{id}", opts)
+    rescue => e
+      handle_error(e, Quoinex::UpdateTradeException)
+    end
+
+    def get_trade_loans(id)
+      get "/trade/#{id}/loans"
+    end
+
     # private
 
     def handle_error(e, exception)
